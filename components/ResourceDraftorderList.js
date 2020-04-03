@@ -27,17 +27,22 @@ const GET_DRAFTORDER_LIST = gql`{
           firstName
           lastName
         }
+        status
       }
     }
   }
 }`;
 
 class ResourceListWithDraftorders extends React.Component {
-  state = {
-    selectedDraftorders: [],
-  };
+  constructor(props) {
+    super(props)
+    this.state = {
+      classify: 'all',
+      selectedDraftorders: [],
+    }
+  }
+
   setSelectedDraftorders = (draftOrders) => {
-    console.log('selected: ', draftOrders);
     this.setState({
       selectedDraftorders: draftOrders
     });
@@ -55,13 +60,22 @@ class ResourceListWithDraftorders extends React.Component {
       );
     };
 
-    // const twoWeeksFromNow = new Date(Date.now() + 12096e5).toDateString();
     return (
       <Query query={GET_DRAFTORDER_LIST}>
         {({ data, loading, error }) => {
           if (loading) { return <div>Loading…</div>; }
           if (error) { return <div>{error.message}</div>; }
-          console.log('draft orders loading: ', data.draftOrders.edges)
+          const renderItems = data.draftOrders.edges.map(doItem => {
+            return {
+              id: parseInt(doItem.node.id.split('/').slice(-1).pop()),
+              name: doItem.node.name,
+              createdAt: doItem.node.createdAt,
+              completedAt: doItem.node.completedAt,
+              email: doItem.node.email,
+              customer: doItem.node.customer,
+            }
+          });
+          
           const bulkActions = [
             {
               content: 'Add tags',
@@ -76,57 +90,50 @@ class ResourceListWithDraftorders extends React.Component {
               onAction: () => console.log('Todo: implement bulk delete'),
             },
           ];
-
-          const resolveItemIds = ({id}) => {
-            return id;
-          };
-
+          
           return (
             <Card>
               <ResourceList
                 resourceName={{ singular: 'Draftorder', plural: 'Draftorders' }}
-                items={data.draftOrders.edges}
-                renderItem={(item) => {
-                  const customerName = item.node.customer ? item.node.customer.firstName : ''
-                  const itemId = item.node.id.split('/').slice(-1).pop()
-                  console.log('item id: ', itemId)
-                  return (
-                    <ResourceItem
-                      id={itemId}
-                      name={item.node.name}
-                      accessibilityLabel={`View details for ${item.node.name}`}
-                      onClick={() => {
-                        store.set('item', item.node);
-                        redirectToDraftorder();
-                      }
-                      }
-                    >
-                      <Stack>
-                        <Stack.Item fill>
-                          <h3>
-                            <TextStyle variation="strong">
-                              {item.node.name}
-                            </TextStyle>
-                          </h3>
-                        </Stack.Item>
-                        <Stack.Item>
-                          <p>{item.node.createdAt}</p>
-                        </Stack.Item>
-                        <Stack.Item>
-                          <p>{customerName} </p>
-                        </Stack.Item>
-                      </Stack>
-                    </ResourceItem>
-                  );
-                }}
-                selectedItems={this.selectedDraftorders}
+                items={renderItems}
+                renderItem={renderItem}
+                selectedItems={this.state.selectedDraftorders}
                 onSelectionChange={this.setSelectedDraftorders}
-                selectable
                 bulkActions={bulkActions}
-                resolveItemId={resolveItemIds}
               />
             </Card>
           );
+          function renderItem(item, _, index) {
+            const {id, name, createdAt, completedAt, email, customer} = item;
+            const customerName = customer ? customer.firstName : ' _ '
+            return (
+              <ResourceItem
+                id={id}
+                url={`edit-quote/${id}`}
+                sortOrder={index}
+                accessibilityLabel={`View details for ${name}`}
+              >
+                <Stack>
+                  <Stack.Item fill>
+                    <h3>
+                      <TextStyle variation="strong">
+                        {name}
+                      </TextStyle>
+                    </h3>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <p>{createdAt}</p>
+                  </Stack.Item>
+                  <Stack.Item>
+                    <p>{customerName} </p>
+                  </Stack.Item>
+                </Stack>
+              </ResourceItem>
+            );
+          };
+          function resolveItemIds({id}) {
+            return id.split('/').slice(-1).pop();
+          }
         }}
       </Query>
     );
