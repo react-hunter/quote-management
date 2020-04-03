@@ -12,8 +12,48 @@ import store from 'store-js';
 import { Redirect } from '@shopify/app-bridge/actions';
 import { Context } from '@shopify/app-bridge-react';
 
-const GET_DRAFTORDER_LIST = gql`{
-  draftOrders(first: 10) {
+const GET_DRAFTORDER_LIST_OPEN = gql`{
+  draftOrders(first: 10, query:"status:open") {
+    edges {
+      node {
+        id
+        name
+        createdAt
+        completedAt
+        email
+        customer {
+          displayName
+          email
+          firstName
+          lastName
+        }
+        status
+      }
+    }
+  }
+}`;
+const GET_DRAFTORDER_LIST_COMPLETED = gql`{
+  draftOrders(first: 10, query:"status:completed") {
+    edges {
+      node {
+        id
+        name
+        createdAt
+        completedAt
+        email
+        customer {
+          displayName
+          email
+          firstName
+          lastName
+        }
+        status
+      }
+    }
+  }
+}`;
+const GET_DRAFTORDER_LIST_INVOCESENT = gql`{
+  draftOrders(first: 10, query:"status:invoice_sent") {
     edges {
       node {
         id
@@ -42,6 +82,12 @@ class ResourceListWithDraftorders extends React.Component {
     }
   }
 
+  static getDerivedStateFromProps(props, state) {
+    return {
+      classify: props.classify
+    }
+  }
+
   setSelectedDraftorders = (draftOrders) => {
     this.setState({
       selectedDraftorders: draftOrders
@@ -59,9 +105,20 @@ class ResourceListWithDraftorders extends React.Component {
         '/edit-products',
       );
     };
+    let queryString = GET_DRAFTORDER_LIST_OPEN
+    switch(this.state.classify) {
+      case 'completed':
+        queryString = GET_DRAFTORDER_LIST_COMPLETED
+        break;
+      case 'invoice_sent':
+        queryString = GET_DRAFTORDER_LIST_INVOCESENT
+        break;
+      default:
+        queryString = GET_DRAFTORDER_LIST_OPEN
+    }
 
     return (
-      <Query query={GET_DRAFTORDER_LIST}>
+      <Query query={queryString}>
         {({ data, loading, error }) => {
           if (loading) { return <div>Loading…</div>; }
           if (error) { return <div>{error.message}</div>; }

@@ -31,32 +31,25 @@ class Index extends React.Component {
 
     const tabs = [
       {
-        id: 'requested-by-customer',
-        content: 'Requested By Customer',
-        accessibilityLabel: 'Requested By Customer',
-        panelID: 'requested-by-customer-content',
-        filter: 'all',
+        id: 'open',
+        content: 'Open',
+        accessibilityLabel: 'Open',
+        panelID: 'open-content',
+        filter: 'open',
       },
       {
-        id: 'approved',
-        content: 'Approved',
-        accessibilityLabel: 'Approved',
-        panelID: 'approved-content',
-        filter: 'approved',
+        id: 'invoice-sent',
+        content: 'Invoice Sent',
+        accessibilityLabel: 'Invoice Sent',
+        panelID: 'invoice-sent',
+        filter: 'invoice-sent',
       },
       {
-        id: 'active',
-        content: 'Active',
-        accessibilityLabel: 'Active',
-        panelID: 'active-content',
-        filter: 'active',
-      },
-      {
-        id: 'inactive',
-        content: 'Inactive',
-        accessibilityLabel: 'Inactive',
-        panelID: 'inactive-content',
-        filter: 'inactive',
+        id: 'completed',
+        content: 'Completed',
+        accessibilityLabel: 'Completed',
+        panelID: 'completed',
+        filter: 'completed'
       }
     ]
 
