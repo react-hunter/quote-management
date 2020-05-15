@@ -1,3 +1,6 @@
+import fetch from 'node-fetch'
+import { createHttpLink } from 'apollo-link-http'
+import { InMemoryCache } from 'apollo-cache-inmemory'
 import App from 'next/app';
 import Head from 'next/head';
 import { AppProvider } from '@shopify/polaris';
@@ -5,10 +8,15 @@ import { Provider } from '@shopify/app-bridge-react';
 import Cookies from "js-cookie";
 import '@shopify/polaris/styles.css';
 import translations from '@shopify/polaris/locales/en.json';
-import ApolloClient from 'apollo-boost';
+import ApolloClient from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
 
 const client = new ApolloClient({
+  link: createHttpLink({
+    uri: '/graphql',
+    fetch: fetch,
+  }),
+  cache: new InMemoryCache(),
   fetchOptions: {
     credentials: 'include',
   },

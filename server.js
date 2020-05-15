@@ -41,6 +41,7 @@ app.prepare().then(() => {
       ],
       async afterAuth(ctx) {
         const { shop, accessToken } = ctx.session;
+        console.log('---------session content: ', shop, accessToken)
         ctx.cookies.set("shopOrigin", shop, {
           httpOnly: false,
           secure: true,
@@ -51,7 +52,7 @@ app.prepare().then(() => {
           topic: 'PRODUCTS_CREATE',
           accessToken,
           shop,
-          apiVersion: ApiVersion.October19
+          apiVersion: ApiVersion.January20
         });
 
         if (registration.success) {
@@ -70,7 +71,7 @@ app.prepare().then(() => {
     console.log('received webhook: ', ctx.state.webhook);
   });
 
-  server.use(graphQLProxy({ version: ApiVersion.October19 }));
+  server.use(graphQLProxy({ version: ApiVersion.January20 }));
 
   router.get('*', verifyRequest(), async (ctx) => {
     await handle(ctx.req, ctx.res);

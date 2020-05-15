@@ -29,7 +29,7 @@ const UPDATE_PRICE = gql`
  }
 `;
 
-class EditProduct extends React.Component {
+class EditQuote extends React.Component {
   state = {
     discount: '',
     price: '',
@@ -88,7 +88,7 @@ class EditProduct extends React.Component {
                           </FormLayout.Group>
                           <p>
                             This sale price will expire in two weeks
-                        </p>
+                          </p>
                         </FormLayout>
                       </Card>
                       <PageActions

@@ -6,11 +6,12 @@ import {
   ResourceItem,
   Stack,
   TextStyle,
-  Thumbnail,
+  Badge,
 } from '@shopify/polaris';
 import store from 'store-js';
 import { Redirect } from '@shopify/app-bridge/actions';
 import { Context } from '@shopify/app-bridge-react';
+import Link from 'next/link';
 
 const GET_DRAFTORDER_LIST_OPEN = gql`{
   draftOrders(first: 10, query:"status:open") {
@@ -28,6 +29,7 @@ const GET_DRAFTORDER_LIST_OPEN = gql`{
           lastName
         }
         status
+        totalPrice
       }
     }
   }
@@ -48,6 +50,7 @@ const GET_DRAFTORDER_LIST_COMPLETED = gql`{
           lastName
         }
         status
+        totalPrice
       }
     }
   }
@@ -68,6 +71,7 @@ const GET_DRAFTORDER_LIST_INVOCESENT = gql`{
           lastName
         }
         status
+        totalPrice
       }
     }
   }
@@ -130,6 +134,8 @@ class ResourceListWithDraftorders extends React.Component {
               completedAt: doItem.node.completedAt,
               email: doItem.node.email,
               customer: doItem.node.customer,
+              status: doItem.node.status,
+              totalPrice: doItem.node.totalPrice,
             }
           });
           
@@ -161,15 +167,17 @@ class ResourceListWithDraftorders extends React.Component {
             </Card>
           );
           function renderItem(item, _, index) {
-            const {id, name, createdAt, completedAt, email, customer} = item;
+            const {id, name, createdAt, completedAt, email, customer, status, totalPrice} = item;
             const customerName = customer ? customer.firstName : ' _ '
             return (
               <ResourceItem
                 id={id}
-                url={`edit-quote/${id}`}
+                // url={`edit-quote/${id}`}
                 sortOrder={index}
                 accessibilityLabel={`View details for ${name}`}
               >
+                <Link href={`/edit-quote?quote_id=${id}`}>
+                <a>
                 <Stack>
                   <Stack.Item fill>
                     <h3>
@@ -178,13 +186,24 @@ class ResourceListWithDraftorders extends React.Component {
                       </TextStyle>
                     </h3>
                   </Stack.Item>
-                  <Stack.Item>
+                  <Stack.Item fill>
                     <p>{createdAt}</p>
                   </Stack.Item>
-                  <Stack.Item>
+                  <Stack.Item fill>
+                    <p>Displays4Sale</p>
+                  </Stack.Item>
+                  <Stack.Item fill>
                     <p>{customerName} </p>
                   </Stack.Item>
+                  <Stack.Item fill>
+                    <Badge>{ status }</Badge>
+                  </Stack.Item>
+                  <Stack.Item fill>
+                    <p>${ totalPrice }</p>
+                  </Stack.Item>
                 </Stack>
+                </a>
+                </Link>
               </ResourceItem>
             );
           };
