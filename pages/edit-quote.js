@@ -10,80 +10,131 @@ import {
   PageActions,
   TextField,
   Toast,
+  Link,
 } from '@shopify/polaris';
 import store from 'store-js';
 import gql from 'graphql-tag';
+import { Redirect } from '@shopify/app-bridge/actions';
+import { Context } from '@shopify/app-bridge-react';
 import { Mutation } from 'react-apollo';
 
-const UPDATE_PRICE = gql`
- mutation productVariantUpdate($input: ProductVariantInput!) {
-   productVariantUpdate(input: $input) {
-     product {
-       title
-     }
-     productVariant {
-       id
-       price
-     }
+const UPDATE_QUOTE = gql`
+ mutation draftOrderUpdate($id: ID!, $input: DraftOrderInput!) {
+   draftOrderUpdate(id: $id, input: $input) {
+    draftOrder {
+      id
+    }
+    userErrors {
+      field
+      message
+    }
    }
  }
 `;
 
 class EditQuote extends React.Component {
   state = {
-    discount: '',
-    price: '',
-    variantId: '',
-    showToast: false,
+    showToast: true,
+    id: '',
+    name: '',
+    email: '',
+    status: 'OPEN',
+    note: '',
+    tags: '',
+    lineItems: [],
   };
 
   componentDidMount() {
-    this.setState({ discount: this.itemToBeConsumed() });
+    const {id, name, email, status, note, tags, lineItems} = this.itemToBeConsumed()
+    this.setState({ 
+      id, name, email, status, note, tags, lineItems
+    });
+  }
+
+  
+
+  duplicateQuote() {
+    console.log('duplicate this quote');
+  }
+
+  addCustomItem() {
+    console.log('add custom item');
+  }
+
+  deleteDraftOrder() {
+    console.log('delete draft order');
+  }
+
+  toggleToast() {
+    const { showToast } = this.state;
+    console.log('arrive toggle');
+    this.setState({ showToast: !showToast });
+  }
+
+  renderToast() {
+    const toastDuration = 2500;
+    const { showToast } = this.state;
+    return showToast ? (<Toast content="Sucessfully updated" duration={{ toastDuration }} onDismiss={() => this.toggleToast() } />) : null;
   }
 
   render() {
-    const { name, price, discount, variantId } = this.state;
+    const { showToast, id, name, email, status, note, tags, lineItems } = this.state;
+    const app = this.context;
+    const redirectToQuoteList = () => {
+      const redirect = Redirect.create(app);
+      redirect.dispatch(
+        Redirect.Action.APP,
+        '/',
+      );
+    };
+
     return (
       <Mutation
-        mutation={UPDATE_PRICE}
+        mutation={UPDATE_QUOTE}
       >
         {(handleSubmit, { error, data }) => {
-          const showError = error && (
+          const errorMarkup = error && (
             <Banner status="critical">{error.message}</Banner>
           );
-          const showToast = data && data.productVariantUpdate && (
-            <Toast
-              content="Sucessfully updated"
-              onDismiss={() => this.setState({ showToast: false })}
-            />
-          );
+          console.log('showToast: ', showToast);
+          const toastMarkup = (data && data.draftOrderUpdate) ? this.renderToast() : null;
+          
           return (
             <Frame>
               <Page>
                 <Layout>
-                  {showToast}
+                  {toastMarkup}
                   <Layout.Section>
-                    {showError}
+                    {errorMarkup}
                   </Layout.Section>
                   <Layout.Section>
+                    <Link onClick={() => redirectToQuoteList()}>&larr; Quotes</Link>
+                    <Link onClick={() => duplicateQuote()}>Duplicate</Link>
                     <DisplayText size="large">{name}</DisplayText>
                     <Form>
-                      <Card sectioned>
+                      <Card
+                        title="Quote details"
+                        actions={[
+                          {
+                            content: 'Add custom item',
+                            onAction: () => addCustomItem()
+                          }
+                        ]}
+                        sectioned
+                      >
                         <FormLayout>
                           <FormLayout.Group>
                             <TextField
-                              prefix="$"
-                              value={price}
-                              disabled
-                              label="Original price"
-                              type="price"
+                              value={note}
+                              onChange={this.handleChange('note')}
+                              label="Note"
+                              type="string"
                             />
                             <TextField
-                              prefix="$"
-                              value={discount}
-                              onChange={this.handleChange('discount')}
-                              label="Discounted price"
-                              type="discount"
+                              value={tags}
+                              onChange={this.handleChange('tags')}
+                              label="Tags"
+                              type="tag"
                             />
                           </FormLayout.Group>
                           <p>
@@ -94,21 +145,24 @@ class EditQuote extends React.Component {
                       <PageActions
                         primaryAction={[
                           {
-                            content: 'Save',
+                            content: 'Save draft quote',
                             onAction: () => {
-                              const productVariableInput = {
-                                id: variantId,
-                                price: discount,
+                              const draftOrderInput = {
+                                note: this.state.note,
+                                tags: this.state.tags,
                               };
                               handleSubmit({
-                                variables: { input: productVariableInput },
+                                variables: { id: 'gid://shopify/DraftOrder/' + id, input: draftOrderInput },
                               });
                             },
                           },
                         ]}
                         secondaryActions={[
                           {
-                            content: 'Remove discount',
+                            content: 'Delete draft quote',
+                            onAction: () => {
+                              deleteDraftOrder();
+                            }
                           },
                         ]}
                       />
@@ -128,12 +182,12 @@ class EditQuote extends React.Component {
   };
 
   itemToBeConsumed = () => {
-    const item = store.get('item');
-    const price = item.variants.edges[0].node.price;
-    const variantId = item.variants.edges[0].node.id;
-    const discounter = price * 0.1;
-    this.setState({ price, variantId });
-    return (price - discounter).toFixed(2);
+    const quote = store.get('quote-item');
+    // const price = quote.variants.edges[0].node.price;
+    // const variantId = quote.variants.edges[0].node.id;
+    // const discounter = price * 0.1;
+    // this.setState({ price, variantId });
+    return quote
   };
 }
 

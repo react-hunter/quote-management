@@ -11,7 +11,7 @@ import {
 import store from 'store-js';
 import { Redirect } from '@shopify/app-bridge/actions';
 import { Context } from '@shopify/app-bridge-react';
-import Link from 'next/link';
+// import Link from 'next/link';
 
 const GET_DRAFTORDER_LIST_OPEN = gql`{
   draftOrders(first: 10, query:"status:open") {
@@ -30,6 +30,22 @@ const GET_DRAFTORDER_LIST_OPEN = gql`{
         }
         status
         totalPrice
+        note2
+        tags
+        lineItems(first: 10) {
+          edges {
+            node {
+              product {
+                handle
+                featuredImage {
+                  originalSrc
+                }
+                title
+              }
+              quantity
+            }
+          }
+        }
       }
     }
   }
@@ -51,6 +67,8 @@ const GET_DRAFTORDER_LIST_COMPLETED = gql`{
         }
         status
         totalPrice
+        note2
+        tags
       }
     }
   }
@@ -72,6 +90,8 @@ const GET_DRAFTORDER_LIST_INVOCESENT = gql`{
         }
         status
         totalPrice
+        note2
+        tags
       }
     }
   }
@@ -102,11 +122,11 @@ class ResourceListWithDraftorders extends React.Component {
 
   render() {
     const app = this.context;
-    const redirectToDraftorder = () => {
+    const redirectToQuote = () => {
       const redirect = Redirect.create(app);
       redirect.dispatch(
         Redirect.Action.APP,
-        '/edit-products',
+        '/edit-quote',
       );
     };
     let queryString = GET_DRAFTORDER_LIST_OPEN
@@ -126,6 +146,7 @@ class ResourceListWithDraftorders extends React.Component {
         {({ data, loading, error }) => {
           if (loading) { return <div>Loading…</div>; }
           if (error) { return <div>{error.message}</div>; }
+          console.log('draft order list: ', data.draftOrders.edges);
           const renderItems = data.draftOrders.edges.map(doItem => {
             return {
               id: parseInt(doItem.node.id.split('/').slice(-1).pop()),
@@ -136,6 +157,9 @@ class ResourceListWithDraftorders extends React.Component {
               customer: doItem.node.customer,
               status: doItem.node.status,
               totalPrice: doItem.node.totalPrice,
+              note: doItem.node.note2,
+              tags: doItem.node.tags.join(','),
+              lineItems: doItem.node.lineItems,
             }
           });
           
@@ -167,7 +191,7 @@ class ResourceListWithDraftorders extends React.Component {
             </Card>
           );
           function renderItem(item, _, index) {
-            const {id, name, createdAt, completedAt, email, customer, status, totalPrice} = item;
+            const {id, name, createdAt, completedAt, email, customer, status, totalPrice, lineItems} = item;
             const customerName = customer ? customer.firstName : ' _ '
             return (
               <ResourceItem
@@ -175,9 +199,11 @@ class ResourceListWithDraftorders extends React.Component {
                 // url={`edit-quote/${id}`}
                 sortOrder={index}
                 accessibilityLabel={`View details for ${name}`}
+                onClick={() => {
+                  store.set('quote-item', item);
+                  redirectToQuote();
+                }}
               >
-                <Link href={`/edit-quote?quote_id=${id}`}>
-                <a>
                 <Stack>
                   <Stack.Item fill>
                     <h3>
@@ -202,8 +228,6 @@ class ResourceListWithDraftorders extends React.Component {
                     <p>${ totalPrice }</p>
                   </Stack.Item>
                 </Stack>
-                </a>
-                </Link>
               </ResourceItem>
             );
           };
