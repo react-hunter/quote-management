@@ -35,6 +35,13 @@ const GET_DRAFTORDER_LIST_OPEN = gql`{
         lineItems(first: 10) {
           edges {
             node {
+              custom
+              discountedTotal
+              discountedUnitPrice
+              originalTotal
+              originalUnitPrice
+              id
+              quantity
               product {
                 handle
                 featuredImage {
@@ -42,7 +49,6 @@ const GET_DRAFTORDER_LIST_OPEN = gql`{
                 }
                 title
               }
-              quantity
             }
           }
         }

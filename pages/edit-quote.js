@@ -11,12 +11,14 @@ import {
   TextField,
   Toast,
   Link,
+  Thumbnail,
 } from '@shopify/polaris';
 import store from 'store-js';
 import gql from 'graphql-tag';
 import { Redirect } from '@shopify/app-bridge/actions';
 import { Context } from '@shopify/app-bridge-react';
 import { Mutation } from 'react-apollo';
+import '../styles.css'
 
 const UPDATE_QUOTE = gql`
  mutation draftOrderUpdate($id: ID!, $input: DraftOrderInput!) {
@@ -41,7 +43,7 @@ class EditQuote extends React.Component {
     status: 'OPEN',
     note: '',
     tags: '',
-    lineItems: [],
+    lineItems: {},
   };
 
   componentDidMount() {
@@ -51,7 +53,9 @@ class EditQuote extends React.Component {
     });
   }
 
-  
+  changeQuantity(qty) {
+    console.log('change quantity: ', qty)
+  }
 
   duplicateQuote() {
     console.log('duplicate this quote');
@@ -63,6 +67,10 @@ class EditQuote extends React.Component {
 
   deleteDraftOrder() {
     console.log('delete draft order');
+  }
+
+  removeLine(lineId) {
+    console.log('remove lineitem from draft order: ', lineId);
   }
 
   toggleToast() {
@@ -79,6 +87,7 @@ class EditQuote extends React.Component {
 
   render() {
     const { showToast, id, name, email, status, note, tags, lineItems } = this.state;
+    console.log('line items: ', lineItems.edges);
     const app = this.context;
     const redirectToQuoteList = () => {
       const redirect = Redirect.create(app);
@@ -96,7 +105,7 @@ class EditQuote extends React.Component {
           const errorMarkup = error && (
             <Banner status="critical">{error.message}</Banner>
           );
-          console.log('showToast: ', showToast);
+          {/* console.log('showToast: ', showToast); */}
           const toastMarkup = (data && data.draftOrderUpdate) ? this.renderToast() : null;
           
           return (
@@ -108,8 +117,8 @@ class EditQuote extends React.Component {
                     {errorMarkup}
                   </Layout.Section>
                   <Layout.Section>
-                    <Link onClick={() => redirectToQuoteList()}>&larr; Quotes</Link>
-                    <Link onClick={() => duplicateQuote()}>Duplicate</Link>
+                    <Link onClick={() => this.redirectToQuoteList()}>&larr; Quotes</Link>
+                    <Link onClick={() => this.duplicateQuote()}>Duplicate</Link>
                     <DisplayText size="large">{name}</DisplayText>
                     <Form>
                       <Card
@@ -117,12 +126,30 @@ class EditQuote extends React.Component {
                         actions={[
                           {
                             content: 'Add custom item',
-                            onAction: () => addCustomItem()
+                            onAction: () => this.addCustomItem()
                           }
                         ]}
                         sectioned
                       >
                         <FormLayout>
+                          {
+                            lineItems.edges ? (lineItems.edges.map((lineItem, key) => {
+                              const rowQty = parseInt(lineItem.node.quantity, 10)
+                              return (
+                                <FormLayout.Group key={key} class="quote-lineitem">
+                                  <span>
+                                    <Thumbnail
+                                      source={lineItem.node.product ? lineItem.node.product.featuredImage.originalSrc : ''}
+                                      alt={lineItem.node.product ? lineItem.node.product.title : ''}
+                                    />
+                                    <span>{lineItem.node.product ? lineItem.node.product.title : 'Selected Options'}</span>
+                                  </span>
+                                  <span>${lineItem.node.discountedUnitPrice} X {rowQty} ${lineItem.node.discountedTotal}</span>
+                                  <span className="quote-line-remove" onClick={() => this.removeLine(lineItem.node.id)}>removeLine</span>
+                                </FormLayout.Group>
+                              );
+                            })) : null
+                          }
                           <FormLayout.Group>
                             <TextField
                               value={note}
@@ -161,7 +188,7 @@ class EditQuote extends React.Component {
                           {
                             content: 'Delete draft quote',
                             onAction: () => {
-                              deleteDraftOrder();
+                              this.deleteDraftOrder();
                             }
                           },
                         ]}
@@ -183,6 +210,7 @@ class EditQuote extends React.Component {
 
   itemToBeConsumed = () => {
     const quote = store.get('quote-item');
+    // console.log('quote: ', quote.lineItems.edges)
     // const price = quote.variants.edges[0].node.price;
     // const variantId = quote.variants.edges[0].node.id;
     // const discounter = price * 0.1;

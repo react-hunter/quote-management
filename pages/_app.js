@@ -10,6 +10,7 @@ import '@shopify/polaris/styles.css';
 import translations from '@shopify/polaris/locales/en.json';
 import ApolloClient from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
+import '../styles.css'
 
 const client = new ApolloClient({
   link: createHttpLink({
