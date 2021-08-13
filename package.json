@@ -28,7 +28,7 @@
     "koa": "^2.11.0",
     "koa-router": "^8.0.8",
     "koa-session": "^5.13.1",
-    "next": "^9.3.3",
+    "next": "^11.1.0",
     "node-fetch": "^2.6.0",
     "react": "^16.13.1",
     "react-apollo": "^3.1.3",
