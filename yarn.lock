@@ -1036,10 +1036,10 @@
     lodash "^4.17.4"
     lodash-decorators "^4.3.5"
 
-"@shopify/koa-shopify-auth@^3.1.58":
-  version "3.1.61"
-  resolved "https://registry.yarnpkg.com/@shopify/koa-shopify-auth/-/koa-shopify-auth-3.1.61.tgz#cf91c829afddb17923eb37ba1ed5b959ce02662b"
-  integrity sha512-lE0p5jPiq0b1GJKgxXoX0WWxkoIc47D6zFHnR7T02gDxW34ssKvOjDhono3MCLUw8SXn4MyzIk7KdvJ7bLyDvg==
+"@shopify/koa-shopify-auth@^3.1.63":
+  version "3.1.63"
+  resolved "https://registry.yarnpkg.com/@shopify/koa-shopify-auth/-/koa-shopify-auth-3.1.63.tgz#75828c7c9ca973fe320574f6f8529fe1d169cd4a"
+  integrity sha512-+QBeDspAZVyP9qQRr4Yg42eeaVhQInV467eev7+qnhw4TY2vwHtpqGqWNvoDQSXfXYMEQyW8MJ3FlYgUhcdKtA==
   dependencies:
     "@shopify/network" "^1.4.7"
     koa-compose ">=3.0.0 <4.0.0"
